@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Unsplash AI 태그/설명 자동생성",
+  "version": "1.0",
+  "description": "unsplash 업로드시 AI로 태그/설명 자동 생성 및 입력",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["https://unsplash.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://unsplash.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "options_page": "options.html",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

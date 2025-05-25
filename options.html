@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>OpenAI 설정</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; }
+    label { display: block; margin-top: 16px; }
+    input, select { width: 100%; padding: 8px; margin-top: 4px; }
+    button { margin-top: 24px; background: #10a37f; color: #fff; border: none; border-radius: 4px; padding: 10px 18px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>OpenAI API 설정</h2>
+  <label>API Key <input type="text" id="apiKey" placeholder="sk-..." /></label>
+  <!-- OpenAI 공식 모델 기준, 최신 멀티모달/이미지 지원 모델 포함 -->
+  <label>모델
+    <select id="model">
+      <option value="gpt-4o">gpt-4o (최신, 멀티모달)</option>
+      <option value="gpt-4o-mini">gpt-4o-mini (초경량, 멀티모달)</option>
+      <option value="gpt-4-vision-preview">gpt-4-vision-preview (이미지 지원)</option>
+      <option value="gpt-4-turbo">gpt-4-turbo</option>
+      <option value="gpt-4-turbo-mini">gpt-4-turbo-mini (초경량)</option>
+      <option value="gpt-4">gpt-4</option>
+      <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+      <option value="gpt-3.5-turbo-mini">gpt-3.5-turbo-mini (초경량)</option>
+    </select>
+  </label>
+  <button id="saveBtn">저장</button>
+  <div id="msg"></div>
+  <script src="options.js"></script>
+</body>
+</html>
