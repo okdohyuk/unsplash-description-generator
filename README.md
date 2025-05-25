@@ -24,7 +24,7 @@ Unsplash 이미지 업로드 시 AI(OpenAI API)를 활용해 사진 설명과 �
 ## 기여 및 이슈
 
 - Pull Request, Issue 환영합니다!
-- 버그, 개선사항, 제안 등은 [GitHub Issues](https://github.com/okdohyuk/unsplash-extension/issues)로 남겨주세요.
+- 버그, 개선사항, 제안 등은 [GitHub Issues](https://github.com/okdohyuk/unsplash-description-generator/issues)로 남겨주세요.
 
 ## 라이선스
 
