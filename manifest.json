@@ -3,7 +3,7 @@
   "name": "Unsplash AI 태그/설명 자동생성",
   "version": "1.0",
   "description": "unsplash 업로드시 AI로 태그/설명 자동 생성 및 입력",
-  "permissions": ["storage", "scripting", "activeTab"],
+  "permissions": ["storage", "activeTab"],
   "host_permissions": ["https://unsplash.com/*"],
   "background": {
     "service_worker": "background.js"
