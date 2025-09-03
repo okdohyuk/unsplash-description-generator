@@ -160,7 +160,7 @@
       return;
     }
     if (msg.type === "AI_RESULT") {
-      const { idx, description, tags: tagStr, error, apiRaw } = msg;
+      const { idx, description, tags: tagStr, error, apiRaw, provider } = msg;
       if (error) {
         alert(`[AI생성] 오류: ${error}`);
         // 오류 발생 시에도 카운트 감소
@@ -178,6 +178,10 @@
       }
       const { descs, tags } = findAllUploadElements();
       if (descs[idx]) {
+        // [한글주석] AI 제공업체 정보를 포함한 설명 설정
+        const providerInfo = provider === 'gemini' ? ' (Gemini AI)' : ' (OpenAI)';
+        console.log(`[AI생성] ${providerInfo} 설명 생성 완료:`, description);
+        
         descs[idx].value = description;
         descs[idx].dispatchEvent(new Event("input", { bubbles: true }));
       }

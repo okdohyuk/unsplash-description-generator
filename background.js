@@ -1,4 +1,4 @@
-// 백그라운드: OpenAI API 호출 및 설정 관리
+// 백그라운드: 다중 AI API 호출 및 설정 관리 (OpenAI, Google Gemini)
 // 한글 주석만 사용
 
 // OpenAI API 호출 함수 (공식 문서 표준 준수)
@@ -139,6 +139,124 @@ async function callOpenAIBase64(base64Image, apiKey, model) {
   }
 }
 
+// Google Gemini API 호출 함수 (base64 이미지 분석)
+async function callGeminiBase64(base64Image, apiKey, model) {
+  // [한글주석] content.js로 로그 전송 함수
+  function sendAILog(msg) {
+    chrome.tabs &&
+      chrome.tabs.query &&
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs && tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "AI_LOG", log: msg });
+        }
+      });
+  }
+
+  // [한글주석] Gemini Vision API 포맷: parts 배열에 텍스트+이미지 모두 포함
+  const prompt = `You are an expert image analyzer for a professional photographer uploading to Unsplash. 
+Please analyze the provided image and provide:
+1. A detailed description in English (about 150 characters) that would help people find this image on Unsplash.
+2. A list of 15 relevant tags separated by commas that describe the content, style, mood, and technical aspects.
+
+Format your response exactly as follows:
+[description]
+[tag1, tag2, tag3, ...]
+
+Be precise and use keywords that photographers and users would search for.`;
+
+  const requestBody = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        {
+          inline_data: {
+            mime_type: "image/jpeg",
+            data: base64Image
+          }
+        }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0.2,
+      topK: 32,
+      topP: 1,
+      maxOutputTokens: 1000,
+    }
+  };
+
+  console.log("[AI생성] Gemini 요청:", requestBody);
+  sendAILog("[AI생성] Gemini 요청: " + JSON.stringify(requestBody));
+
+  try {
+    sendAILog("[AI생성] Gemini fetch 요청 시작");
+    console.log("[AI생성] Gemini fetch 요청 시작");
+    
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    // [한글주석] fetch 완료 상태 확인
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini 응답 오류: ${response.status}, ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("[AI생성] Gemini 응답:", data);
+
+    let description = "", tags = "";
+    try {
+      // [한글주석] Gemini 응답 구조: candidates[0].content.parts[0].text
+      const content = data.candidates[0].content.parts[0].text;
+      const lines = content.trim().split(/\r?\n+/);
+      description = lines[0] ? lines[0].replace(/^[\[\]]/g, "").trim() : "";
+      tags = lines[1] ? lines[1].replace(/^[\[\]]/g, "").trim() : "";
+    } catch (e) {
+      console.error("[AI생성] Gemini 응답 파싱 실패:", e);
+      description = "Gemini 설명 파싱 실패";
+      tags = "";
+    }
+
+    return { description, tags };
+  } catch (e) {
+    console.error("[AI생성] Gemini API 오류:", e);
+    return { description: "Gemini API 오류", tags: "태그실패" };
+  }
+}
+
+// 통합 AI API 호출 함수 (제공업체에 따라 적절한 API 호출)
+async function callAI(base64Image, settings) {
+  const provider = settings.ai_provider || 'openai';
+  
+  if (provider === 'gemini') {
+    const apiKey = settings.gemini_api_key;
+    const model = settings.gemini_model || 'gemini-1.5-pro';
+    
+    if (!apiKey) {
+      throw new Error('Gemini API 키가 설정되지 않았습니다');
+    }
+    
+    return await callGeminiBase64(base64Image, apiKey, model);
+  } else {
+    // 기본값은 OpenAI
+    const apiKey = settings.openai_api_key;
+    const model = settings.openai_model || 'gpt-4-vision-preview';
+    
+    if (!apiKey) {
+      throw new Error('OpenAI API 키가 설정되지 않았습니다');
+    }
+    
+    return await callOpenAIBase64(base64Image, apiKey, model);
+  }
+}
+
 // 메시지 핸들러
 // [한글주석] fetch에 50초 타임아웃 적용 유틸리티
 function fetchWithTimeout(resource, options = {}) {
@@ -175,31 +293,48 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   }
   if (msg.type === "AI_GENERATE") {
     // imgUrl 또는 base64Image를 받아서 처리
-    // [한글주석] 옵션 저장소에서 언더스코어 키로 불러오기
-    const apiKeyObj = await new Promise((res) => {
-      chrome.storage.sync.get(["openai_api_key", "openai_model"], res);
+    // [한글주석] 모든 AI 설정을 저장소에서 불러오기
+    const settings = await new Promise((res) => {
+      chrome.storage.sync.get([
+        "ai_provider", 
+        "openai_api_key", 
+        "openai_model", 
+        "gemini_api_key", 
+        "gemini_model"
+      ], res);
     });
-    const key = apiKeyObj.openai_api_key;
-    const model = apiKeyObj.openai_model || "gpt-4-vision-preview";
+
     let result = { description: "", tags: "" };
     let apiRaw = null;
     let errorMsg = null;
+    
     try {
       if (msg.base64Image) {
-        result = await callOpenAIBase64(msg.base64Image, key, model);
+        // [한글주석] 통합 AI 호출 함수 사용
+        result = await callAI(msg.base64Image, settings);
       } else {
-        result = await callOpenAI(msg.imgUrl, key, model);
+        // [한글주석] URL 이미지의 경우 OpenAI만 지원 (레거시 지원)
+        const provider = settings.ai_provider || 'openai';
+        if (provider === 'openai') {
+          const key = settings.openai_api_key;
+          const model = settings.openai_model || "gpt-4-vision-preview";
+          result = await callOpenAI(msg.imgUrl, key, model);
+        } else {
+          throw new Error('URL 이미지는 현재 OpenAI만 지원합니다');
+        }
       }
 
       // [한글주석] 결과값 content.js로 전달 (API 원본 응답 포함)
       console.log("[AI생성] 콘텐츠로 메시지 전송 시작", {
         type: "AI_RESULT",
+        provider: settings.ai_provider,
         ...result,
         apiRaw,
-      }); // [한글주석] 콘텐츠로 메시지 전송 시작
+      });
       chrome.tabs.sendMessage(sender.tab.id, {
         type: "AI_RESULT",
         idx: msg.idx,
+        provider: settings.ai_provider,
         ...result,
         apiRaw,
       });
@@ -209,14 +344,16 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       console.log("[AI생성] 콘텐츠로 메시지 전송(에러)", {
         type: "AI_RESULT",
         error: errorMsg,
+        provider: settings.ai_provider,
         apiRaw,
-      }); // [한글주석] 콘텐츠로 메시지 전송(에러)
+      });
       chrome.tabs.sendMessage(sender.tab.id, {
         type: "AI_RESULT",
         idx: msg.idx,
         description: "AI 설명 생성 실패",
         tags: "",
         error: errorMsg,
+        provider: settings.ai_provider,
         apiRaw,
       });
     }
