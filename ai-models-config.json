@@ -1,0 +1,128 @@
+{
+  "providers": {
+    "openai": {
+      "name": "OpenAI",
+      "description": "최고 품질의 이미지 분석과 설명 생성",
+      "pricing": "사용량 기반",
+      "icon": "🤖",
+      "color": "green",
+      "loginUrl": "https://platform.openai.com/api-keys",
+      "keyPlaceholder": "sk-...",
+      "keyPattern": "^sk-[a-zA-Z0-9]{48,}$",
+      "models": [
+        {
+          "id": "gpt-5",
+          "name": "gpt-5",
+          "description": "최신, 멀티모달"
+        },
+        {
+          "id": "gpt-5-mini",
+          "name": "gpt-5-mini",
+          "description": "초경량, 멀티모달",
+          "recommended": true
+        },
+        {
+          "id": "gpt-5-nano",
+          "name": "gpt-5-nano",
+          "description": "초경량, 경제적 옵션"
+        },
+        {
+          "id": "gpt-4o",
+          "name": "gpt-4o",
+          "description": "멀티모달"
+        },
+        {
+          "id": "gpt-4o-mini",
+          "name": "gpt-4o-mini",
+          "description": "초경량, 멀티모달"
+        },
+        {
+          "id": "gpt-4-turbo",
+          "name": "gpt-4-turbo",
+          "description": "터보 버전"
+        },
+        {
+          "id": "gpt-4",
+          "name": "gpt-4",
+          "description": "기본 GPT-4"
+        },
+        {
+          "id": "gpt-3.5-turbo",
+          "name": "gpt-3.5-turbo",
+          "description": "경제적 옵션"
+        },
+        {
+          "id": "custom",
+          "name": "직접 입력...",
+          "description": "최신 모델 직접 입력"
+        }
+      ]
+    },
+    "gemini": {
+      "name": "Google Gemini",
+      "description": "빠르고 정확한 AI 분석",
+      "pricing": "무료 할당량 있음",
+      "icon": "✨",
+      "color": "blue",
+      "loginUrl": "https://aistudio.google.com/app/apikey",
+      "keyPlaceholder": "AIza...",
+      "keyPattern": "^AIza[a-zA-Z0-9_-]{35,}$",
+      "models": [
+        {
+          "id": "gemini-2.5-pro",
+          "name": "Gemini 2.5 Pro",
+          "description": "향상된 사고 및 추론, 멀티모달 이해, 고급 코딩 등"
+        },
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "description": "적응적 사고, 비용 효율성",
+          "recommended": true
+        },
+        {
+          "id": "custom",
+          "name": "직접 입력...",
+          "description": "최신 모델 직접 입력"
+        }
+      ]
+    },
+    "claude": {
+      "name": "Claude",
+      "description": "자연스럽고 상세한 설명 생성",
+      "pricing": "사용량 기반",
+      "icon": "🎆",
+      "color": "purple",
+      "loginUrl": "https://console.anthropic.com/account/keys",
+      "keyPlaceholder": "sk-ant-...",
+      "keyPattern": "^sk-ant-[a-zA-Z0-9_-]{95,}$",
+      "models": [
+        {
+          "id": "claude-opus-4-20250514",
+          "name": "Claude 4 Opus",
+          "description": "고성능 버전"
+        },
+        {
+          "id": "claude-sonnet-4-20250514",
+          "name": "Claude 4 Sonnet",
+          "description": "균형잡힌 성능",
+          "recommended": true
+        },
+        {
+          "id": "claude-3-7-sonnet-20250219",
+          "name": "Claude 3.7 Sonnet",
+          "description": "가성비"
+        },
+        {
+          "id": "claude-3-5-haiku-20241022",
+          "name": "Claude 3.5 Haiku",
+          "description": "빠른 처리"
+        },
+        {
+          "id": "custom",
+          "name": "직접 입력...",
+          "description": "최신 모델 직접 입력"
+        }
+      ]
+    }
+  }
+}

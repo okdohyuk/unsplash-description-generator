@@ -2,22 +2,80 @@
 (function () {
   // 여러 이미지, 설명, 태그 입력란을 모두 배열로 반환하는 함수
   function findAllUploadElements() {
-    // [한글주석] 업로드 폼 내 설명 및 태그 입력란 모두 탐색 (한글/영문 대응)
-    const descs = Array.from(
-      document.querySelectorAll(
-        'textarea[placeholder*="설명"], textarea[placeholder*="description"], input[placeholder*="설명"], input[placeholder*="description"]'
-      )
-    );
-    const tags = Array.from(
-      document.querySelectorAll('input[placeholder="태그 추가"]')
-    );
+    // [한글주석] 업로드 폼 내 설명 및 태그 입력란 모두 탐색 (다양한 선택자 시도)
+    const descriptionSelectors = [
+      'textarea[placeholder*="설명"]',
+      'textarea[placeholder*="description"]', 
+      'input[placeholder*="설명"]',
+      'input[placeholder*="description"]',
+      'textarea[aria-label*="description"]',
+      'textarea[data-testid*="description"]',
+      'textarea', // 일반 textarea
+      'input[type="text"]' // 텍스트 입력
+    ];
+    
+    const tagSelectors = [
+      'input[placeholder="태그 추가"]',
+      'input[placeholder*="tag"]',
+      'input[placeholder*="태그"]',
+      'input[aria-label*="tag"]',
+      'input[data-testid*="tag"]',
+      'input[type="text"]' // 일반 텍스트 입력
+    ];
+    
+    let descs = [];
+    let tags = [];
+    
+    // 설명 입력란 찾기
+    for (const selector of descriptionSelectors) {
+      const elements = Array.from(document.querySelectorAll(selector));
+      if (elements.length > 0) {
+        // 텍스트 길이가 긴 입력란을 설명란으로 우선 고려
+        descs = elements.filter(el => {
+          const placeholder = el.placeholder?.toLowerCase() || '';
+          const ariaLabel = el.getAttribute('aria-label')?.toLowerCase() || '';
+          return placeholder.includes('description') || 
+                 placeholder.includes('설명') ||
+                 ariaLabel.includes('description') ||
+                 el.tagName === 'TEXTAREA';
+        });
+        if (descs.length > 0) break;
+      }
+    }
+    
+    // 태그 입력란 찾기
+    for (const selector of tagSelectors) {
+      const elements = Array.from(document.querySelectorAll(selector));
+      if (elements.length > 0) {
+        tags = elements.filter(el => {
+          const placeholder = el.placeholder?.toLowerCase() || '';
+          const ariaLabel = el.getAttribute('aria-label')?.toLowerCase() || '';
+          return placeholder.includes('tag') || 
+                 placeholder.includes('태그') ||
+                 ariaLabel.includes('tag');
+        });
+        if (tags.length > 0) break;
+      }
+    }
+    
+    // 설명란을 못 찾은 경우 모든 textarea 시도
+    if (descs.length === 0) {
+      descs = Array.from(document.querySelectorAll('textarea'));
+    }
+    
+    // 태그란을 못 찾은 경우 남은 input 시도
+    if (tags.length === 0) {
+      const allInputs = Array.from(document.querySelectorAll('input[type="text"]'));
+      tags = allInputs.filter(input => !descs.includes(input));
+    }
+    
     return { descs, tags };
   }
 
   // [한글주석] AI생성 버튼을 모달 하단 버튼 그룹(취소/제출 옆)에만 추가
   function insertAIGenerateButton() {
-    // 버튼 그룹(div.MW6IL) 탐색
-    const btnGroup = document.querySelector("div.MW6IL");
+    // 버튼 그룹 탐색 (업데이트된 선택자)
+    const btnGroup = document.querySelector("div.buttons-MW6ILd") || document.querySelector("div.MW6IL");
     if (!btnGroup) return;
     // 이미 버튼 있으면 중복 삽입 방지
     if (btnGroup.querySelector("#ai-generate-btn")) return;
